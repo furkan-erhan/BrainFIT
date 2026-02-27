@@ -1,0 +1,16 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.doccache
+
+# Node.js (Frontend)
+node_modules/
+dist/
+.env
+
+# IDEs
+.vs/
+.vscode/
+.idea/

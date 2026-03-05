@@ -2,14 +2,23 @@ using BrainFIT.Application.Interfaces.Repositories;
 using BrainFIT.Infrastructure.Persistence;
 using BrainFIT.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using BrainFIT.Application.Interfaces.Services;
+using BrainFIT.Application.Services;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers(); //API controller'lari framewroke kayit eder
+
 builder.Services.AddDbContext<BrainFITDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -24,6 +33,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
+
 
 var summaries = new[]
 {

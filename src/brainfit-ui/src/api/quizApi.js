@@ -65,5 +65,22 @@ export const quizApi = {
                 setTimeout(() => resolve(newQuiz), 1000);
             });
         }
+    },
+
+    /**
+     * Deletes a quiz by ID
+     * @param {string} id 
+     * @returns {Promise<boolean>}
+     */
+    deleteQuiz: async (id) => {
+        try {
+            await axiosInstance.delete(`/quizzes/${id}`);
+            return true;
+        } catch (error) {
+            console.warn(`Backend API not found or failed, simulating deletion of quiz ${id} with mock data.`);
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(true), 600);
+            });
+        }
     }
 };

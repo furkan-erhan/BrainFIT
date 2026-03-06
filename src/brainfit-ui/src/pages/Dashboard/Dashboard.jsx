@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaLock } from 'react-icons/fa';
 import { quizApi } from '../../api/quizApi';
+import { useAuth } from '../../context/AuthContext';
 import QuizCard from '../../components/QuizCard/QuizCard';
 import Spinner from '../../components/Spinner/Spinner';
 import CreateQuizModal from '../../components/CreateQuizModal/CreateQuizModal';
 
 const Dashboard = () => {
+    const { isAuthenticated } = useAuth();
     const [quizzes, setQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,7 +21,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const data = await quizApi.getQuizzes();
-            setQuizzes(data);
+            // Reverse array to show newest first for mock data
+            setQuizzes([...data].reverse());
         } catch (error) {
             console.error('Error fetching quizzes:', error);
         } finally {
@@ -33,6 +36,18 @@ const Dashboard = () => {
             setQuizzes([newQuiz, ...quizzes]);
         } catch (error) {
             console.error('Error creating quiz:', error);
+        }
+    };
+
+    const handleDeleteQuiz = async (id) => {
+        try {
+            const success = await quizApi.deleteQuiz(id);
+            if (success) {
+                setQuizzes(prevQuizzes => prevQuizzes.filter(q => q.id !== id));
+            }
+        } catch (error) {
+            console.error('Error deleting quiz:', error);
+            alert('Failed to delete quiz. Please try again.');
         }
     };
 
@@ -52,12 +67,18 @@ const Dashboard = () => {
                     <p className="text-gray-500 mt-1 font-medium">Create, manage and play your library of knowledge.</p>
                 </div>
 
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-primary/25 transition-all transform active:scale-95 whitespace-nowrap"
-                >
-                    <FaPlus /> Create New Quiz
-                </button>
+                {isAuthenticated ? (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-primary/25 transition-all transform active:scale-95 whitespace-nowrap"
+                    >
+                        <FaPlus /> Create New Quiz
+                    </button>
+                ) : (
+                    <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-500 rounded-2xl border border-gray-200 text-sm font-semibold">
+                        <FaLock /> Sign in to create quizzes
+                    </div>
+                )}
             </div>
 
             {/* Search Bar */}
@@ -83,7 +104,11 @@ const Dashboard = () => {
             ) : filteredQuizzes.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredQuizzes.map((quiz) => (
-                        <QuizCard key={quiz.id} quiz={quiz} />
+                        <QuizCard
+                            key={quiz.id}
+                            quiz={quiz}
+                            onDelete={handleDeleteQuiz}
+                        />
                     ))}
                 </div>
             ) : (
@@ -93,7 +118,7 @@ const Dashboard = () => {
                     <p className="text-gray-500 mt-2 italic text-center px-4">
                         {searchTerm ? `We couldn't find any results for "${searchTerm}"` : "You haven't created any quizzes yet. Start your journey today!"}
                     </p>
-                    {!searchTerm && (
+                    {!searchTerm && isAuthenticated && (
                         <button
                             onClick={() => setIsModalOpen(true)}
                             className="mt-6 text-primary font-bold hover:underline"

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BrainFIT.Application.Contracts.Answers;
 using BrainFIT.Application.Contracts.Questions;
 using BrainFIT.Application.Interfaces.Services;
+using BrainFIT.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrainFIT.API.Controllers
@@ -19,6 +20,19 @@ namespace BrainFIT.API.Controllers
         {
             _answerService = answerService;
             _questionService = questionService;
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<object>> GetQuestion(Guid id, CancellationToken ct)
+        {
+            var q = await _questionService.GetByIdAsync(id, ct);
+            if (q is null) return NotFound();
+            return Ok(new
+            {
+                id = q.Id,
+                text = q.Text,
+                options = q.Options.Select(o => new { id = o.Id, text = o.Text, isCorrect = o.IsCorrect })
+            });
         }
 
         // Issue'nin istediği: Answer submit

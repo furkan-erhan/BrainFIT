@@ -13,15 +13,18 @@ namespace BrainFIT.Application.Services
     {
         private readonly IGenericRepository<Quiz> _quizRepo;
         private readonly IGenericRepository<Question> _questionRepo;
+        private readonly IQuestionRepository _questionSpecificRepo;
         private readonly IUnitOfWork _uow;
 
         public QuestionService(
             IGenericRepository<Quiz> quizRepo,
             IGenericRepository<Question> questionRepo,
+            IQuestionRepository questionSpecificRepo,
             IUnitOfWork uow)
         {
             _quizRepo = quizRepo;
             _questionRepo = questionRepo;
+            _questionSpecificRepo = questionSpecificRepo;
             _uow = uow;
         }
 
@@ -67,6 +70,11 @@ namespace BrainFIT.Application.Services
             await _uow.SaveChangesAsync(ct);
 
             return question.Id;
+        }
+
+        public async Task<Question?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            return await _questionSpecificRepo.GetWithOptionsAsync(id, ct);
         }
     }
 }

@@ -14,3 +14,5 @@ dist/
 .vs/
 .vscode/
 .idea/
+# MacOS
+.DS_Store

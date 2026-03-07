@@ -20,8 +20,8 @@ namespace BrainFIT.Infrastructure.Persistence
             // Additional configuration can be added here if needed
             modelBuilder.Entity<Quiz>()
                 .HasMany(q => q.Questions)
-                .WithOne()
-                .HasForeignKey(q => q.Id); // Assuming some default mapping for now or BaseEntity properties
+                .WithOne(q => q.Quiz)
+                .HasForeignKey(q => q.QuizId);
         }
     }
 }

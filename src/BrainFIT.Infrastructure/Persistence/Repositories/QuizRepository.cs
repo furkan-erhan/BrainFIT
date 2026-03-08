@@ -21,9 +21,18 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         public async Task<IReadOnlyList<Quiz>> GetAllWithCountsAsync(CancellationToken ct = default)
         {
             return await _db.Quizzes
+                .Where(q => !q.IsDeleted)
                 .Include(q => q.Questions)
                 .OrderByDescending(q => q.CreatedDate)
                 .ToListAsync(ct);
+        }
+
+        public async Task<Quiz?> GetByIdWithQuestionsAsync(Guid id, CancellationToken ct = default)
+        {
+            return await _db.Quizzes
+                .Include(q => q.Questions)
+                    .ThenInclude(qu => qu.Options)
+                .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
         }
     }
 }

@@ -6,7 +6,12 @@ export const quizApi = {
      * @returns {Promise<import('./quizApi.types').Quiz[]>}
      */
     getQuizzes: async () => {
-        return await axiosInstance.get('/quizzes');
+        const result = await axiosInstance.get('/quizzes');
+        if (!result.success) {
+            console.error('Failed to fetch quizzes:', result.message);
+            return [];
+        }
+        return result.data || [];
     },
 
     /**
@@ -15,10 +20,13 @@ export const quizApi = {
      * @returns {Promise<import('./quizApi.types').Quiz>}
      */
     createQuiz: async (data) => {
-        const response = await axiosInstance.post('/quizzes', data);
-        // The API returns the ID, but the UI expects the full object.
+        const result = await axiosInstance.post('/quizzes', data);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to create quiz');
+        }
+        // The API returns Result<Guid>
         return {
-            id: response,
+            id: result.data,
             ...data,
             createdDate: new Date().toISOString(),
             questionCount: 0
@@ -31,8 +39,8 @@ export const quizApi = {
      * @returns {Promise<boolean>}
      */
     deleteQuiz: async (id) => {
-        await axiosInstance.delete(`/quizzes/${id}`);
-        return true;
+        const result = await axiosInstance.delete(`/quizzes/${id}`);
+        return result.success;
     },
 
     /**
@@ -41,7 +49,11 @@ export const quizApi = {
      * @returns {Promise<any>}
      */
     getQuestion: async (id) => {
-        return await axiosInstance.get(`/questions/${id}`);
+        const result = await axiosInstance.get(`/questions/${id}`);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to fetch question');
+        }
+        return result.data;
     },
 
     /**
@@ -50,6 +62,10 @@ export const quizApi = {
      * @returns {Promise<any>}
      */
     submitAnswer: async (data) => {
-        return await axiosInstance.post('/questions', data);
+        const result = await axiosInstance.post('/questions', data);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to submit answer');
+        }
+        return result.data;
     }
 };

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using BrainFIT.Application.Common;
 using BrainFIT.Application.Contracts.Quizzes;
 using BrainFIT.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrainFIT.API.Controllers
@@ -20,25 +22,34 @@ namespace BrainFIT.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<QuizResponse>>> GetAll(CancellationToken ct)
+        public async Task<ActionResult<Result<IReadOnlyList<QuizResponse>>>> GetAll(CancellationToken ct)
         {
-            var results = await _quizService.GetAllAsync(ct);
-            return Ok(results);
+            var result = await _quizService.GetAllAsync(ct);
+            return Ok(result);
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<Result<QuizGetByIdResponse>>> GetById(Guid id, CancellationToken ct)
+        {
+            var result = await _quizService.GetByIdAsync(id, ct);
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> Create([FromBody] CreateQuizRequest request, CancellationToken ct)
+        public async Task<ActionResult<Result<Guid>>> Create([FromBody] CreateQuizRequest request, CancellationToken ct)
         {
-            var id = await _quizService.CreateAsync(request, ct);
-            return Ok(id);
+            var result = await _quizService.CreateAsync(request, ct);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<ActionResult> Delete(Guid id, CancellationToken ct)
+        public async Task<ActionResult<Result>> Delete(Guid id, CancellationToken ct)
         {
-            var success = await _quizService.DeleteAsync(id, ct);
-            if (!success) return NotFound();
-            return NoContent();
+            var result = await _quizService.DeleteAsync(id, ct);
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
         }
     }
 }

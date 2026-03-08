@@ -8,6 +8,8 @@ using BrainFIT.Application.Interfaces.Repositories;
 using BrainFIT.Application.Interfaces.Services;
 using BrainFIT.Domain.Entities;
 
+using BrainFIT.Application.Common;
+
 namespace BrainFIT.Application.Services
 {
     public sealed class QuizService : IQuizService
@@ -26,20 +28,52 @@ namespace BrainFIT.Application.Services
             _uow = uow;
         }
 
-        public async Task<IReadOnlyList<QuizResponse>> GetAllAsync(CancellationToken ct = default)
+        public async Task<Result<IReadOnlyList<QuizResponse>>> GetAllAsync(CancellationToken ct = default)
         {
             var quizzes = await _quizRepo.GetAllWithCountsAsync(ct);
-            return quizzes.Select(q => new QuizResponse(
+            var response = quizzes.Select(q => new QuizResponse(
                 q.Id,
                 q.Title,
                 q.Description,
                 q.CreatedDate,
                 q.Questions.Count
             )).ToList();
+
+            return Result<IReadOnlyList<QuizResponse>>.Ok(response);
         }
 
-        public async Task<Guid> CreateAsync(CreateQuizRequest request, CancellationToken ct = default)
+        public async Task<Result<QuizGetByIdResponse>> GetByIdAsync(Guid id, CancellationToken ct = default)
         {
+            var quiz = await _quizRepo.GetByIdWithQuestionsAsync(id, ct);
+            if (quiz is null)
+                return Result<QuizGetByIdResponse>.Failure("Quiz not found");
+
+            var response = new QuizGetByIdResponse(
+                quiz.Id,
+                quiz.Title,
+                quiz.Description,
+                quiz.CreatedDate,
+                quiz.Questions.Select(q => new QuestionResponse(
+                    q.Id,
+                    q.Text,
+                    q.BasePoint,
+                    q.TimeLimitInSeconds,
+                    q.Options.Select(o => new OptionResponse(
+                        o.Id,
+                        o.Text,
+                        o.IsCorrect
+                    )).ToList()
+                )).ToList()
+            );
+
+            return Result<QuizGetByIdResponse>.Ok(response);
+        }
+
+        public async Task<Result<Guid>> CreateAsync(CreateQuizRequest request, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(request.Title))
+                return Result<Guid>.Failure("Title cannot be empty");
+
             var quiz = new Quiz
             {
                 Title = request.Title,
@@ -49,17 +83,20 @@ namespace BrainFIT.Application.Services
             await _genericRepo.AddAsync(quiz);
             await _uow.SaveChangesAsync(ct);
 
-            return quiz.Id;
+            return Result<Guid>.Ok(quiz.Id);
         }
 
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
+        public async Task<Result> DeleteAsync(Guid id, CancellationToken ct = default)
         {
             var quiz = await _genericRepo.GetByIdAsync(id);
-            if (quiz is null) return false;
+            if (quiz is null || quiz.IsDeleted) 
+                return Result.Failure("Quiz not found");
 
-            _genericRepo.Delete(quiz);
+            quiz.IsDeleted = true;
+            _genericRepo.Update(quiz);
             await _uow.SaveChangesAsync(ct);
-            return true;
+            
+            return Result.Ok("Quiz deleted successfully");
         }
     }
 }

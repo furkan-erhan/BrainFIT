@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaRegClock, FaRegQuestionCircle, FaTrashAlt, FaSpinner } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
 const QuizCard = ({ quiz, onDelete }) => {
     const { isAdmin } = useAuth();
     const [isDeleting, setIsDeleting] = useState(false);
+    const navigate = useNavigate();
 
     // Generate a Kahoot-like gradient based on ID or index
     const gradients = [
@@ -29,8 +31,17 @@ const QuizCard = ({ quiz, onDelete }) => {
         }
     };
 
+    const handleCardClick = () => {
+        if (!isDeleting) {
+            navigate(`/lobby/${quiz.id}`);
+        }
+    };
+
     return (
-        <div className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform ${!isDeleting ? 'hover:-translate-y-1 cursor-pointer' : 'opacity-50'} border border-gray-100 flex flex-col h-full group relative`}>
+        <div 
+            onClick={handleCardClick}
+            className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform ${!isDeleting ? 'hover:-translate-y-1 cursor-pointer' : 'opacity-50'} border border-gray-100 flex flex-col h-full group relative`}
+        >
 
             {/* Admin Delete Button */}
             {isAdmin && (

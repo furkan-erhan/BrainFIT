@@ -14,6 +14,12 @@ export default defineConfig({
         target: 'http://localhost:5123',
         changeOrigin: true,
         secure: false,
+      },
+      '/quizHub': {
+        target: 'http://localhost:5123',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
       }
     }
   }

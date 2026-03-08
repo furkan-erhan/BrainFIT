@@ -15,7 +15,7 @@ const QuizCard = ({ quiz, onDelete }) => {
         'from-purple-500 to-fuchsia-600'
     ];
     // A simple hash function to pick a gradient based on the quiz ID
-    const hash = quiz.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash = (quiz.id || '').toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const gradientClass = gradients[hash % gradients.length];
 
     const formattedDate = new Date(quiz.createdDate).toLocaleDateString();

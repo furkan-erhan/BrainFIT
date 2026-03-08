@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BrainFIT.Application.Common;
 using BrainFIT.Application.Contracts.Questions;
 using BrainFIT.Application.Interfaces.Repositories;
 using BrainFIT.Application.Interfaces.Services;
@@ -28,19 +29,19 @@ namespace BrainFIT.Application.Services
             _uow = uow;
         }
 
-        public async Task<Guid> AddQuestionAsync(CreateQuestionRequest request, CancellationToken ct = default)
+        public async Task<Result<Guid>> AddQuestionAsync(CreateQuestionRequest request, CancellationToken ct = default)
         {
             // Acceptance: exactly 4 options
             if (request.Options is null || request.Options.Count != 4)
-                throw new InvalidOperationException("A question must have exactly 4 options.");
+                return Result<Guid>.Failure("A question must have exactly 4 options.");
 
             // iyi pratik: 1 doğru şık
             if (request.Options.Count(o => o.IsCorrect) != 1)
-                throw new InvalidOperationException("A question must have exactly 1 correct option.");
+                return Result<Guid>.Failure("A question must have exactly 1 correct option.");
 
             var quiz = await _quizRepo.GetByIdAsync(request.QuizId);
             if (quiz is null)
-                throw new InvalidOperationException("Quiz not found.");
+                return Result<Guid>.Failure("Quiz not found.");
 
             var question = new Question
             {
@@ -64,17 +65,18 @@ namespace BrainFIT.Application.Services
 
             // son güvenlik
             if (question.Options.Count != 4)
-                throw new InvalidOperationException("A question must have exactly 4 options.");
+                return Result<Guid>.Failure("A question must have exactly 4 options.");
 
             await _questionRepo.AddAsync(question);
             await _uow.SaveChangesAsync(ct);
 
-            return question.Id;
+            return Result<Guid>.Ok(question.Id);
         }
 
-        public async Task<Question?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        public async Task<Result<Question?>> GetByIdAsync(Guid id, CancellationToken ct = default)
         {
-            return await _questionSpecificRepo.GetWithOptionsAsync(id, ct);
+            var question = await _questionSpecificRepo.GetWithOptionsAsync(id, ct);
+            return Result<Question?>.Ok(question);
         }
     }
 }

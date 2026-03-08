@@ -1,10 +1,11 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BrainFIT.Application.Common;
 using BrainFIT.Application.Contracts.Answers;
 using BrainFIT.Application.Contracts.Questions;
 using BrainFIT.Application.Interfaces.Services;
-using BrainFIT.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrainFIT.API.Controllers
@@ -23,46 +24,37 @@ namespace BrainFIT.API.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<object>> GetQuestion(Guid id, CancellationToken ct)
+        public async Task<ActionResult<Result<object>>> GetQuestion(Guid id, CancellationToken ct)
         {
-            var q = await _questionService.GetByIdAsync(id, ct);
-            if (q is null) return NotFound();
-            return Ok(new
+            var result = await _questionService.GetByIdAsync(id, ct);
+            if (!result.Success || result.Data is null)
+                return NotFound(result);
+
+            var q = result.Data;
+            var response = new
             {
                 id = q.Id,
                 text = q.Text,
                 options = q.Options.Select(o => new { id = o.Id, text = o.Text, isCorrect = o.IsCorrect })
-            });
+            };
+
+            return Ok(Result<object>.Ok(response));
         }
 
-        // Issue'nin istediği: Answer submit
         [HttpPost]
-        public async Task<ActionResult<SubmitAnswerResponse>> SubmitAnswer([FromBody] SubmitAnswerRequest request, CancellationToken ct)
+        public async Task<ActionResult<Result<SubmitAnswerResponse>>> SubmitAnswer([FromBody] SubmitAnswerRequest request, CancellationToken ct)
         {
-            try
-            {
-                var result = await _answerService.SubmitAsync(request, ct);
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var result = await _answerService.SubmitAsync(request, ct);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
         }
 
-        // Task'ı tamamlamak için: Quiz'e question ekleme endpoint'i (opsiyonel ama pratik)
         [HttpPost("create")]
-        public async Task<ActionResult<Guid>> CreateQuestion([FromBody] CreateQuestionRequest request, CancellationToken ct)
+        public async Task<ActionResult<Result<Guid>>> CreateQuestion([FromBody] CreateQuestionRequest request, CancellationToken ct)
         {
-            try
-            {
-                var id = await _questionService.AddQuestionAsync(request, ct);
-                return Ok(id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var result = await _questionService.AddQuestionAsync(request, ct);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
         }
     }
 }

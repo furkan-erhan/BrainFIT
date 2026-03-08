@@ -14,4 +14,26 @@ namespace BrainFIT.Application.Contracts.Quizzes
         DateTime CreatedDate,
         int QuestionCount
     );
+
+    public sealed record QuizGetByIdResponse(
+        Guid Id,
+        string Title,
+        string Description,
+        DateTime CreatedDate,
+        List<QuestionResponse> Questions
+    );
+
+    public sealed record QuestionResponse(
+        Guid Id,
+        string Text,
+        int BasePoint,
+        int TimeLimitInSeconds,
+        List<OptionResponse> Options
+    );
+
+    public sealed record OptionResponse(
+        Guid Id,
+        string Text,
+        bool IsCorrect
+    );
 }

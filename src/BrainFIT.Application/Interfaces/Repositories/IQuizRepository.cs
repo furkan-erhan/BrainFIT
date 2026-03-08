@@ -8,5 +8,6 @@ namespace BrainFIT.Application.Interfaces.Repositories
     public interface IQuizRepository
     {
         Task<IReadOnlyList<Quiz>> GetAllWithCountsAsync(CancellationToken ct = default);
+        Task<Quiz?> GetByIdWithQuestionsAsync(Guid id, CancellationToken ct = default);
     }
 }

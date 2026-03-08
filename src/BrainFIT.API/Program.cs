@@ -4,13 +4,23 @@ using BrainFIT.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using BrainFIT.Application.Interfaces.Services;
 using BrainFIT.Application.Services;
-
+using BrainFIT.API.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers(); //API controller'lari framewroke kayit eder
+builder.Services.AddControllers();
+
+// Configure CORS for SignalR (frontend UI typically runs on localhost:5173)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder => builder
+        .WithOrigins("http://localhost:5173")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
+});
 
 builder.Services.AddDbContext<BrainFITDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -22,6 +32,9 @@ builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Add SignalR Service
+builder.Services.AddSignalR();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -35,8 +48,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Apply Cors Policy
+app.UseCors("CorsPolicy");
+
 app.MapControllers();
 
+// Map SignalR Hub
+app.MapHub<QuizHub>("/quizHub");
 
 var summaries = new[]
 {

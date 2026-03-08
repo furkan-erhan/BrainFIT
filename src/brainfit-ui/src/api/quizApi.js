@@ -15,6 +15,19 @@ export const quizApi = {
     },
 
     /**
+     * Fetches a quiz by ID (with its questions)
+     * @param {string} id 
+     * @returns {Promise<any>}
+     */
+    getQuizById: async (id) => {
+        const result = await axiosInstance.get(`/quizzes/${id}`);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to fetch quiz');
+        }
+        return result.data;
+    },
+
+    /**
      * Creates a new quiz
      * @param {import('./quizApi.types').CreateQuizRequest} data 
      * @returns {Promise<import('./quizApi.types').Quiz>}

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import Dashboard from './pages/Dashboard/Dashboard';
 import LoginModal from './components/Auth/LoginModal';
+import QuizLobby from './pages/QuizLobby/QuizLobby';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const Header = ({ onOpenLogin }) => {
@@ -65,6 +66,7 @@ const AppContent = () => {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/lobby/:quizId" element={<QuizLobby />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

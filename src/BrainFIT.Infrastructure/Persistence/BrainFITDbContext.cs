@@ -12,16 +12,27 @@ namespace BrainFIT.Infrastructure.Persistence
         public DbSet<Quiz> Quizzes => Set<Quiz>();
         public DbSet<Question> Questions => Set<Question>();
         public DbSet<Option> Options => Set<Option>();
+        public DbSet<QuizResult> QuizResults => Set<QuizResult>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             
-            // Additional configuration can be added here if needed
             modelBuilder.Entity<Quiz>()
                 .HasMany(q => q.Questions)
                 .WithOne(q => q.Quiz)
                 .HasForeignKey(q => q.QuizId);
+
+            modelBuilder.Entity<QuizResult>()
+                .HasOne(qr => qr.Quiz)
+                .WithMany()
+                .HasForeignKey(qr => qr.QuizId);
+
+            modelBuilder.Entity<QuizResult>()
+                .HasIndex(qr => qr.QuizId);
+
+            modelBuilder.Entity<QuizResult>()
+                .HasIndex(qr => qr.UserName);
         }
     }
 }

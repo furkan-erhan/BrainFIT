@@ -7,6 +7,7 @@ using BrainFIT.Application.Contracts.Quizzes;
 using BrainFIT.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BrainFIT.API.Controllers
 {
@@ -37,6 +38,7 @@ namespace BrainFIT.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Result<Guid>>> Create([FromBody] CreateQuizRequest request, CancellationToken ct)
         {
             var result = await _quizService.CreateAsync(request, ct);
@@ -45,6 +47,7 @@ namespace BrainFIT.API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Result>> Delete(Guid id, CancellationToken ct)
         {
             var result = await _quizService.DeleteAsync(id, ct);

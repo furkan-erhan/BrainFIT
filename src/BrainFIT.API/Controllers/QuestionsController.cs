@@ -56,5 +56,27 @@ namespace BrainFIT.API.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+
+        [HttpGet("pool")]
+        public async Task<ActionResult<Result<object>>> GetQuestions([FromQuery] string? categoryId, CancellationToken ct)
+        {
+            var result = string.IsNullOrEmpty(categoryId)
+                ? await _questionService.GetAllAsync(ct)
+                : await _questionService.GetByCategoryAsync(categoryId, ct);
+
+            if (!result.Success || result.Data is null)
+                return NotFound(result);
+
+            var response = result.Data.Select(q => new
+            {
+                id = q.Id,
+                text = q.Text,
+                categoryId = q.CategoryId,
+                difficultyLevel = q.DifficultyLevel,
+                options = q.Options.Select(o => new { id = o.Id, text = o.Text, isCorrect = o.IsCorrect })
+            });
+
+            return Ok(Result<object>.Ok(response));
+        }
     }
 }

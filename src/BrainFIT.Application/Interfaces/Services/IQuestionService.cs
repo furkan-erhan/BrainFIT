@@ -10,5 +10,7 @@ namespace BrainFIT.Application.Interfaces.Services
     {
         Task<Result<Guid>> AddQuestionAsync(CreateQuestionRequest request, CancellationToken ct = default);
         Task<Result<BrainFIT.Domain.Entities.Question?>> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<Result<IEnumerable<BrainFIT.Domain.Entities.Question>>> GetAllAsync(CancellationToken ct = default);
+        Task<Result<IEnumerable<BrainFIT.Domain.Entities.Question>>> GetByCategoryAsync(string category, CancellationToken ct = default);
     }
 }

@@ -8,8 +8,9 @@ public class Question : BaseEntity
     public int BasePoint { get; set; } = 10;
     public int TimeLimitInSeconds { get; set; } = 20;
     
-    public Guid QuizId { get; set; }
-    public Quiz Quiz { get; set; } = null!;
+    public string? CategoryId { get; set; }
+    public int DifficultyLevel { get; set; } = 1;
 
     public ICollection<Option> Options { get; set; } = new List<Option>();
+    public ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
 }

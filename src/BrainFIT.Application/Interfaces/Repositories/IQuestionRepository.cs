@@ -8,5 +8,7 @@ namespace BrainFIT.Application.Interfaces.Repositories
     public interface IQuestionRepository
     {
         Task<Question?> GetWithOptionsAsync(Guid questionId, CancellationToken ct = default);
+        Task<IEnumerable<Question>> GetAllQuestionsAsync(CancellationToken ct = default);
+        Task<IEnumerable<Question>> GetQuestionsByCategoryAsync(string category, CancellationToken ct = default);
     }
 }

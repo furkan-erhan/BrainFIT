@@ -4,6 +4,8 @@ import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import Dashboard from './pages/Dashboard/Dashboard';
 import LoginModal from './components/Auth/LoginModal';
 import QuizLobby from './pages/QuizLobby/QuizLobby';
+import Gameplay from './pages/Gameplay/Gameplay';
+import AuthPage from './pages/Auth/AuthPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const Header = ({ onOpenLogin }) => {
@@ -17,7 +19,7 @@ const Header = ({ onOpenLogin }) => {
             B
           </div>
           <span className="text-2xl font-black text-secondary tracking-tighter hidden sm:block">
-            Brain<span className="text-primary italic">FIT</span>
+            Brain<span className="text-primary italic">FIT</span> {/* buraya basildigi zaman dashboarda atmasi lazim, link eklenecek */}
           </span>
         </div>
 
@@ -56,6 +58,7 @@ const Header = ({ onOpenLogin }) => {
 };
 
 const AppContent = () => {
+  const { isAuthenticated } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   return (
@@ -65,8 +68,29 @@ const AppContent = () => {
 
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/lobby/:quizId" element={<QuizLobby />} />
+            {/* Landing/Dashboard Logic */}
+            <Route 
+              path="/" 
+              element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" replace />} 
+            />
+            
+            {/* Auth Page */}
+            <Route 
+              path="/auth" 
+              element={!isAuthenticated ? <AuthPage /> : <Navigate to="/" replace />} 
+            />
+
+            {/* Private Quiz Routes */}
+            <Route 
+              path="/lobby/:quizId" 
+              element={isAuthenticated ? <QuizLobby /> : <Navigate to="/auth" replace />} 
+            />
+            <Route 
+              path="/gameplay/:quizId" 
+              element={isAuthenticated ? <Gameplay /> : <Navigate to="/auth" replace />} 
+            />
+
+            {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

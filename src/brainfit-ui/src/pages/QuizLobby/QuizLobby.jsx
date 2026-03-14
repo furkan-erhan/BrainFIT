@@ -33,7 +33,9 @@ const QuizLobby = () => {
 
                 // 2. Establish SignalR Connection
                 const newConnection = new HubConnectionBuilder()
-                    .withUrl('/quizHub') // Proxied via Vite config to avoid CORS
+                    .withUrl('/quizHub', {
+                        accessTokenFactory: () => user?.token || ''
+                    })
                     .withAutomaticReconnect()
                     .build();
 
@@ -46,8 +48,11 @@ const QuizLobby = () => {
                 });
 
                 newConnection.on("QuizStarted", () => {
-                    // For now, we just show an alert until the actual play session is built
-                    alert("THE QUIZ HAS STARTED!");
+                    navigate(`/gameplay/${quizId}`);
+                });
+
+                newConnection.on("StartQuizError", (errorMessage) => {
+                    alert(`Cannot start quiz: ${errorMessage}`);
                 });
 
                 // 4. Start Connection
@@ -88,8 +93,12 @@ const QuizLobby = () => {
         try {
             await connectionRef.current.invoke("StartQuiz", quizId);
         } catch (err) {
+            if (err.message && (err.message.includes("canceled") || err.message.includes("closed"))) {
+                console.log("StartQuiz invocation canceled locally due to rapid navigation. This is expected.");
+                return;
+            }
             console.error("Failed to start quiz:", err);
-            alert("Could not start the quiz. Check connection.");
+            alert(`Could not start the quiz: ${err.message || err}`);
         }
     };
 
@@ -193,6 +202,12 @@ const QuizLobby = () => {
                                     <p className="text-gray-500 text-sm">The quiz will start automatically when the host is ready.</p>
                                 </div>
                             )}
+                            
+                            {/* Room Code Info */}
+                            <div className="mt-8 pt-6 border-t border-gray-200 w-full text-center">
+                                <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Room Code</p>
+                                <p className="text-lg font-mono font-black text-primary select-all">{quizId}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

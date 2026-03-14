@@ -29,7 +29,10 @@ namespace BrainFIT.Application.Services
             if (question.Options is null || question.Options.Count != 4)
                 return Result<SubmitAnswerResponse>.Failure("Question must have exactly 4 options.");
 
-            var selected = question.Options.FirstOrDefault(o => o.Id == request.SelectedOptionId);
+            if (!request.SelectedOptionId.HasValue)
+                return Result<SubmitAnswerResponse>.Ok(new SubmitAnswerResponse(false, 0));
+
+            var selected = question.Options.FirstOrDefault(o => o.Id == request.SelectedOptionId.Value);
             if (selected is null)
                 return Result<SubmitAnswerResponse>.Failure("Selected option not found for this question.");
 

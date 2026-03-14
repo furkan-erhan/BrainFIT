@@ -22,15 +22,16 @@ namespace BrainFIT.Application.Services
             _uow = uow;
         }
 
-        public async Task<Result<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboardAsync(Guid quizId, CancellationToken ct = default)
+        public async Task<Result<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboardAsync(Guid quizId, Guid? sessionId = null, CancellationToken ct = default)
         {
-            var results = await _quizResultRepo.GetLeaderboardAsync(quizId, 10, ct);
+            var results = await _quizResultRepo.GetLeaderboardAsync(quizId, sessionId, 10, ct);
             
             var response = results.Select(r => new LeaderboardEntryResponse(
                 r.UserName,
                 r.Score,
                 r.SecondsElapsed,
-                r.CreatedDate
+                r.CreatedDate,
+                r.SessionId
             )).ToList();
 
             return Result<IReadOnlyList<LeaderboardEntryResponse>>.Ok(response);
@@ -58,7 +59,8 @@ namespace BrainFIT.Application.Services
                 QuizId = request.QuizId,
                 UserName = request.UserName,
                 Score = request.TotalScore,
-                SecondsElapsed = request.TotalSecondsElapsed
+                SecondsElapsed = request.TotalSecondsElapsed,
+                SessionId = request.SessionId
             };
 
             await _quizResultRepo.AddAsync(result);

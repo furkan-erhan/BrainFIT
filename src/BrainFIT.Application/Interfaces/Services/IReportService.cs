@@ -9,7 +9,7 @@ namespace BrainFIT.Application.Interfaces.Services
 {
     public interface IReportService
     {
-        Task<Result<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboardAsync(Guid quizId, CancellationToken ct = default);
+        Task<Result<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboardAsync(Guid quizId, Guid? sessionId = null, CancellationToken ct = default);
         Task<Result<IReadOnlyList<UserProgressResponse>>> GetUserProgressAsync(string username, CancellationToken ct = default);
         Task<Result> SubmitResultAsync(SubmitQuizResultRequest request, CancellationToken ct = default);
     }

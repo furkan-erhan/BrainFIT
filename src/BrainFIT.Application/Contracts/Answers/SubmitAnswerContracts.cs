@@ -4,7 +4,7 @@ namespace BrainFIT.Application.Contracts.Answers
 {
     public sealed record SubmitAnswerRequest(
         Guid QuestionId,
-        Guid SelectedOptionId,
+        Guid? SelectedOptionId,
         int SecondsElapsed
     );
 

@@ -15,10 +15,16 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         {
         }
 
-        public async Task<IReadOnlyList<QuizResult>> GetLeaderboardAsync(Guid quizId, int top = 10, CancellationToken ct = default)
+        public async Task<IReadOnlyList<QuizResult>> GetLeaderboardAsync(Guid quizId, Guid? sessionId = null, int top = 10, CancellationToken ct = default)
         {
-            return await _context.QuizResults
-                .Where(qr => qr.QuizId == quizId)
+            var query = _context.QuizResults.Where(qr => qr.QuizId == quizId);
+            
+            if (sessionId.HasValue)
+            {
+                query = query.Where(qr => qr.SessionId == sessionId.Value);
+            }
+
+            return await query
                 .OrderByDescending(qr => qr.Score)
                 .ThenBy(qr => qr.SecondsElapsed)
                 .Take(top)

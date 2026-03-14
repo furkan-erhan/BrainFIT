@@ -6,9 +6,11 @@ using BrainFIT.Application.Common;
 using BrainFIT.Application.Contracts.Reports;
 using BrainFIT.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BrainFIT.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public sealed class ReportsController : ControllerBase
@@ -21,9 +23,9 @@ namespace BrainFIT.API.Controllers
         }
 
         [HttpGet("leaderboard/{quizId:guid}")]
-        public async Task<ActionResult<Result<IReadOnlyList<LeaderboardEntryResponse>>>> GetLeaderboard(Guid quizId, CancellationToken ct)
+        public async Task<ActionResult<Result<IReadOnlyList<LeaderboardEntryResponse>>>> GetLeaderboard(Guid quizId, CancellationToken ct, [FromQuery] Guid? sessionId = null)
         {
-            var result = await _reportService.GetLeaderboardAsync(quizId, ct);
+            var result = await _reportService.GetLeaderboardAsync(quizId, sessionId, ct);
             return Ok(result);
         }
 

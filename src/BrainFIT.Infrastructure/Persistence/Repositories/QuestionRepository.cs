@@ -22,5 +22,20 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
                 .Include(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == questionId, ct);
         }
+
+        public async Task<IEnumerable<Question>> GetAllQuestionsAsync(CancellationToken ct = default)
+        {
+            return await _db.Set<Question>()
+                .Include(q => q.Options)
+                .ToListAsync(ct);
+        }
+
+        public async Task<IEnumerable<Question>> GetQuestionsByCategoryAsync(string categoryId, CancellationToken ct = default)
+        {
+            return await _db.Set<Question>()
+                .Include(q => q.Options)
+                .Where(q => q.CategoryId == categoryId)
+                .ToListAsync(ct);
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         {
             return await _db.Quizzes
                 .Where(q => !q.IsDeleted)
-                .Include(q => q.Questions)
+                .Include(q => q.QuizQuestions)
                 .OrderByDescending(q => q.CreatedDate)
                 .ToListAsync(ct);
         }
@@ -30,8 +30,9 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         public async Task<Quiz?> GetByIdWithQuestionsAsync(Guid id, CancellationToken ct = default)
         {
             return await _db.Quizzes
-                .Include(q => q.Questions)
-                    .ThenInclude(qu => qu.Options)
+                .Include(q => q.QuizQuestions)
+                    .ThenInclude(qq => qq.Question)
+                        .ThenInclude(qu => qu.Options)
                 .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
         }
     }

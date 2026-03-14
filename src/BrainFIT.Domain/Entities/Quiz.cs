@@ -7,5 +7,5 @@ public class Quiz : BaseEntity
     public string Title { get; set; } = String.Empty;
     public string Description { get; set; } = string.Empty;
 
-    public ICollection<Question> Questions { get; set; } = new List<Question>();
+    public ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
 }

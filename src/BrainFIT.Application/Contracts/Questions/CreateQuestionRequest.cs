@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace BrainFIT.Application.Contracts.Questions
 {
     public sealed record CreateQuestionRequest(
-        Guid QuizId,
+        string? CategoryId,
+        int DifficultyLevel,
         string Text,
         int BasePoint,
         int TimeLimitInSeconds,

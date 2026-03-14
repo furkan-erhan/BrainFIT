@@ -39,13 +39,10 @@ namespace BrainFIT.Application.Services
             if (request.Options.Count(o => o.IsCorrect) != 1)
                 return Result<Guid>.Failure("A question must have exactly 1 correct option.");
 
-            var quiz = await _quizRepo.GetByIdAsync(request.QuizId);
-            if (quiz is null)
-                return Result<Guid>.Failure("Quiz not found.");
-
             var question = new Question
             {
-                QuizId = request.QuizId,
+                CategoryId = request.CategoryId,
+                DifficultyLevel = request.DifficultyLevel,
                 Text = request.Text,
                 BasePoint = request.BasePoint,
                 TimeLimitInSeconds = request.TimeLimitInSeconds
@@ -77,6 +74,18 @@ namespace BrainFIT.Application.Services
         {
             var question = await _questionSpecificRepo.GetWithOptionsAsync(id, ct);
             return Result<Question?>.Ok(question);
+        }
+
+        public async Task<Result<IEnumerable<Question>>> GetAllAsync(CancellationToken ct = default)
+        {
+            var questions = await _questionSpecificRepo.GetAllQuestionsAsync(ct);
+            return Result<IEnumerable<Question>>.Ok(questions);
+        }
+
+        public async Task<Result<IEnumerable<Question>>> GetByCategoryAsync(string category, CancellationToken ct = default)
+        {
+            var questions = await _questionSpecificRepo.GetQuestionsByCategoryAsync(category, ct);
+            return Result<IEnumerable<Question>>.Ok(questions);
         }
     }
 }

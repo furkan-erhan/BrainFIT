@@ -11,6 +11,7 @@ namespace BrainFIT.Infrastructure.Persistence
 
         public DbSet<Quiz> Quizzes => Set<Quiz>();
         public DbSet<Question> Questions => Set<Question>();
+        public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
         public DbSet<Option> Options => Set<Option>();
         public DbSet<QuizResult> QuizResults => Set<QuizResult>();
         public DbSet<User> Users => Set<User>();
@@ -19,10 +20,19 @@ namespace BrainFIT.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             
-            modelBuilder.Entity<Quiz>()
-                .HasMany(q => q.Questions)
-                .WithOne(q => q.Quiz)
-                .HasForeignKey(q => q.QuizId);
+            // Configure Many-to-Many
+            modelBuilder.Entity<QuizQuestion>()
+                .HasKey(qq => new { qq.QuizId, qq.QuestionId });
+
+            modelBuilder.Entity<QuizQuestion>()
+                .HasOne(qq => qq.Quiz)
+                .WithMany(q => q.QuizQuestions)
+                .HasForeignKey(qq => qq.QuizId);
+
+            modelBuilder.Entity<QuizQuestion>()
+                .HasOne(qq => qq.Question)
+                .WithMany(q => q.QuizQuestions)
+                .HasForeignKey(qq => qq.QuestionId);
 
             modelBuilder.Entity<QuizResult>()
                 .HasOne(qr => qr.Quiz)

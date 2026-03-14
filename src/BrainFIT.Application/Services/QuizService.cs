@@ -36,7 +36,7 @@ namespace BrainFIT.Application.Services
                 q.Title,
                 q.Description,
                 q.CreatedDate,
-                q.Questions.Count
+                q.QuizQuestions.Count
             )).ToList();
 
             return Result<IReadOnlyList<QuizResponse>>.Ok(response);
@@ -53,12 +53,12 @@ namespace BrainFIT.Application.Services
                 quiz.Title,
                 quiz.Description,
                 quiz.CreatedDate,
-                quiz.Questions.Select(q => new QuestionResponse(
-                    q.Id,
-                    q.Text,
-                    q.BasePoint,
-                    q.TimeLimitInSeconds,
-                    q.Options.Select(o => new OptionResponse(
+                quiz.QuizQuestions.Select(qq => new QuestionResponse(
+                    qq.Question.Id,
+                    qq.Question.Text,
+                    qq.Question.BasePoint,
+                    qq.Question.TimeLimitInSeconds,
+                    qq.Question.Options.Select(o => new OptionResponse(
                         o.Id,
                         o.Text,
                         o.IsCorrect

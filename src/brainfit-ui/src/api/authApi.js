@@ -8,31 +8,30 @@ export const authApi = {
      */
     login: async (data) => {
         try {
-            // Try real API first (if it exists)
+            // Try real API first
             const response = await axiosInstance.post('/auth/login', {
-                username: data.username,
+                email: data.username || data.email,
                 password: data.password
             });
-            return response.data || response;
+            return response;
         } catch (error) {
-            console.warn('Backend Auth API not found or failed, simulating login with mock data.');
-            // Fallback to mock login
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    if (!data.username || !data.password) {
-                        reject(new Error('Username and password are required'));
-                        return;
-                    }
+             console.error('Login Failed', error);
+             throw new Error(error.response?.data?.message || 'Invalid credentials or server error.');
+        }
+    },
 
-                    const mockUser = {
-                        id: Math.random().toString(36).substr(2, 9),
-                        username: data.username,
-                        role: data.mockRole || 'User', // Allows us to easily test Admin role
-                        token: 'mock-jwt-token-12345'
-                    };
-                    resolve(mockUser);
-                }, 800);
-            });
+    /**
+     * Registers a new user
+     * @param {object} data - { username, email, password }
+     * @returns {Promise<any>}
+     */
+    register: async (data) => {
+        try {
+            const response = await axiosInstance.post('/auth/register', data);
+            return response;
+        } catch (error) {
+            console.error('Registration Failed', error);
+            throw new Error(error.response?.data?.message || 'Registration failed.');
         }
     }
 };

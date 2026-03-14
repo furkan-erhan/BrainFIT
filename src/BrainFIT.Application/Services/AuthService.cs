@@ -51,12 +51,13 @@ namespace BrainFIT.Application.Services
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _userRepository.GetByEmailAsync(request.Email);
+            var user = await _userRepository.GetByEmailOrUsernameAsync(request.Email);
 
             if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
             {
-                throw new Exception("Invalid email or password.");
+                throw new Exception("Invalid email/username or password.");
             }
+
 
             var token = _jwtService.GenerateToken(user);
 

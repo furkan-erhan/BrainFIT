@@ -6,7 +6,8 @@ namespace BrainFIT.Application.Contracts.Reports
         string UserName,
         double Score,
         double SecondsElapsed,
-        DateTime AchievedAt
+        DateTime AchievedAt,
+        Guid? SessionId
     );
 
     public record UserProgressResponse(
@@ -21,6 +22,7 @@ namespace BrainFIT.Application.Contracts.Reports
         Guid QuizId,
         string UserName,
         double TotalScore,
-        double TotalSecondsElapsed
+        double TotalSecondsElapsed,
+        Guid? SessionId
     );
 }

@@ -9,6 +9,8 @@ public class QuizResult : BaseEntity
     public double Score { get; set; }
     public double SecondsElapsed { get; set; }
 
+    public Guid? SessionId { get; set; }
+    
     // Navigation property (optional, but good for joins)
     public Quiz Quiz { get; set; } = null!;
 }

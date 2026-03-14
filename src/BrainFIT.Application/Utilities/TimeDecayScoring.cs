@@ -17,7 +17,8 @@ namespace BrainFIT.Application.Utilities
             if (secondsElapsed < 0)
                 secondsElapsed = 0;
 
-            var score = maxPoints - (secondsElapsed / 2); // integer division
+            // Much faster decay: Subtract 5 points per second
+            var score = maxPoints - (secondsElapsed * 5); 
             return score < 0 ? 0 : score;
         }
     }

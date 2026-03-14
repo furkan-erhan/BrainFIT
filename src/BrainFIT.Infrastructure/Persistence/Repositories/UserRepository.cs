@@ -17,5 +17,10 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+
+        public async Task<User?> GetByEmailOrUsernameAsync(string identifier)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == identifier || u.Username == identifier);
+        }
     }
 }

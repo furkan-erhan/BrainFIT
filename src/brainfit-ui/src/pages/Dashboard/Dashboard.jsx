@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaSearch, FaLock } from 'react-icons/fa';
 import { quizApi } from '../../api/quizApi';
 import { useAuth } from '../../context/AuthContext';
@@ -56,6 +57,16 @@ const Dashboard = () => {
         quiz.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const [joinCode, setJoinCode] = useState('');
+    const navigate = useNavigate();
+
+    const handleJoinByCode = (e) => {
+        e.preventDefault();
+        if (joinCode.trim()) {
+            navigate(`/lobby/${joinCode.trim()}`);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header Section */}
@@ -79,6 +90,32 @@ const Dashboard = () => {
                         <FaLock /> Sign in to create quizzes
                     </div>
                 )}
+            </div>
+
+            {/* Quick Actions Panel: Join by Code */}
+            <div className="bg-white rounded-3xl p-6 mb-8 border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
+                <div className="relative">
+                    <h3 className="text-xl font-black text-secondary mb-1">Got a Quiz Code?</h3>
+                    <p className="text-gray-500 font-medium">Join your friends' game instantly by entering the unique ID.</p>
+                </div>
+                
+                <form onSubmit={handleJoinByCode} className="flex w-full md:w-auto gap-3 relative">
+                    <input
+                        type="text"
+                        placeholder="Enter Quiz ID..."
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value)}
+                        className="flex-1 md:w-80 px-5 py-3 rounded-xl bg-gray-50 border-2 border-transparent focus:border-primary focus:bg-white outline-none font-bold transition-all text-gray-700"
+                    />
+                    <button 
+                        type="submit"
+                        disabled={!joinCode.trim()}
+                        className="px-6 py-3 bg-secondary text-white font-bold rounded-xl hover:bg-black transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        Join Lobby
+                    </button>
+                </form>
             </div>
 
             {/* Search Bar */}

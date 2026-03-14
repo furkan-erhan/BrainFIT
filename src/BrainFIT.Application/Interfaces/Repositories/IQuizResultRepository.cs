@@ -8,7 +8,7 @@ namespace BrainFIT.Application.Interfaces.Repositories
 {
     public interface IQuizResultRepository : IGenericRepository<QuizResult>
     {
-        Task<IReadOnlyList<QuizResult>> GetLeaderboardAsync(Guid quizId, int top = 10, CancellationToken ct = default);
+        Task<IReadOnlyList<QuizResult>> GetLeaderboardAsync(Guid quizId, Guid? sessionId = null, int top = 10, CancellationToken ct = default);
         Task<IReadOnlyList<QuizResult>> GetUserProgressAsync(string username, CancellationToken ct = default);
     }
 }

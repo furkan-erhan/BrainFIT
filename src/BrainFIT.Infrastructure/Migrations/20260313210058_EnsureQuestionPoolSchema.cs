@@ -11,68 +11,33 @@ namespace BrainFIT.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // The database already contains these schema changes manually applied. 
-            // Running these commands throws "already exists" errors.
-            
-            /*
-            migrationBuilder.DropForeignKey(
-                name: "FK_Questions_Quizzes_QuizId",
-                table: "Questions");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Questions_QuizId",
-                table: "Questions");
-
-            migrationBuilder.DropColumn(
-                name: "QuizId",
-                table: "Questions");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Category",
-                table: "Questions",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.AddColumn<int>(
-                name: "DifficultyLevel",
-                table: "Questions",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.CreateTable(
-                name: "QuizQuestions",
-                columns: table => new
-                {
-                    QuizId = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_QuizQuestions", x => new { x.QuizId, x.QuestionId });
-                    table.ForeignKey(
-                        name: "FK_QuizQuestions_Questions_QuestionId",
-                        column: x => x.QuestionId,
-                        principalTable: "Questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_QuizQuestions_Quizzes_QuizId",
-                        column: x => x.QuizId,
-                        principalTable: "Quizzes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_QuizQuestions_QuestionId",
-                table: "QuizQuestions",
-                column: "QuestionId");
-            */
+            // Idempotent: use raw SQL to add columns if they don't exist,
+            // and create the QuizQuestions table if it doesn't exist.
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Questions"" ADD COLUMN IF NOT EXISTS ""Category"" text NULL;
+                ALTER TABLE ""Questions"" ADD COLUMN IF NOT EXISTS ""DifficultyLevel"" integer NOT NULL DEFAULT 1;
+                
+                CREATE TABLE IF NOT EXISTS ""QuizQuestions"" (
+                    ""QuizId"" uuid NOT NULL,
+                    ""QuestionId"" uuid NOT NULL,
+                    ""Id"" uuid NOT NULL,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""UpdatedDate"" timestamp with time zone NULL,
+                    ""IsDeleted"" boolean NOT NULL DEFAULT false,
+                    CONSTRAINT ""PK_QuizQuestions"" PRIMARY KEY (""QuizId"", ""QuestionId""),
+                    CONSTRAINT ""FK_QuizQuestions_Questions_QuestionId"" FOREIGN KEY (""QuestionId"") REFERENCES ""Questions"" (""Id"") ON DELETE CASCADE,
+                    CONSTRAINT ""FK_QuizQuestions_Quizzes_QuizId"" FOREIGN KEY (""QuizId"") REFERENCES ""Quizzes"" (""Id"") ON DELETE CASCADE
+                );
+                
+                CREATE INDEX IF NOT EXISTS ""IX_QuizQuestions_QuestionId"" ON ""QuizQuestions"" (""QuestionId"");
+                
+                -- Drop the old QuizId column from Questions if it still exists
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Questions' AND column_name='QuizId') THEN
+                        ALTER TABLE ""Questions"" DROP COLUMN ""QuizId"";
+                    END IF;
+                END $$;
+            ");
         }
 
         /// <inheritdoc />

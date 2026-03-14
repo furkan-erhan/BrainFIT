@@ -41,7 +41,7 @@ namespace BrainFIT.Application.Services
 
             var question = new Question
             {
-                CategoryId = request.CategoryId,
+                Category = request.CategoryId,
                 DifficultyLevel = request.DifficultyLevel,
                 Text = request.Text,
                 BasePoint = request.BasePoint,

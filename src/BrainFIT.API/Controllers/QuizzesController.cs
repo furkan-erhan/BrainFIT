@@ -54,5 +54,23 @@ namespace BrainFIT.API.Controllers
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
+
+        [HttpPost("{id:guid}/questions/{questionId:guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<Result>> AddQuestion(Guid id, Guid questionId, CancellationToken ct)
+        {
+            var result = await _quizService.AddQuestionToQuizAsync(id, questionId, ct);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id:guid}/questions/{questionId:guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<Result>> RemoveQuestion(Guid id, Guid questionId, CancellationToken ct)
+        {
+            var result = await _quizService.RemoveQuestionFromQuizAsync(id, questionId, ct);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
     }
 }

@@ -14,7 +14,11 @@ using BrainFIT.Application.Interfaces.Security;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -101,6 +105,14 @@ builder.Services.AddSignalR(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Apply pending migrations and seed data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BrainFITDbContext>();
+    await db.Database.MigrateAsync();
+    await DatabaseSeeder.SeedAsync(app.Services);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

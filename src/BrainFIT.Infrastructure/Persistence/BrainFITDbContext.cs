@@ -9,6 +9,13 @@ namespace BrainFIT.Infrastructure.Persistence
         {
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            // Suppress the pending model changes warning to allow MigrateAsync to run
+            optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        }
+
         public DbSet<Quiz> Quizzes => Set<Quiz>();
         public DbSet<Question> Questions => Set<Question>();
         public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();

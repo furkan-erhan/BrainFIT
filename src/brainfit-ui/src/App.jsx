@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { FaUserCircle, FaSignOutAlt, FaLayerGroup } from 'react-icons/fa';
 import Dashboard from './pages/Dashboard/Dashboard';
 import LoginModal from './components/Auth/LoginModal';
 import QuizLobby from './pages/QuizLobby/QuizLobby';
 import Gameplay from './pages/Gameplay/Gameplay';
 import AuthPage from './pages/Auth/AuthPage';
+import QuestionPool from './pages/QuestionPool/QuestionPool';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const Header = ({ onOpenLogin }) => {
@@ -26,6 +27,15 @@ const Header = ({ onOpenLogin }) => {
         <nav className="flex items-center gap-4">
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
+              {isAdmin && (
+                <Link
+                  to="/questions"
+                  className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/5 rounded-xl transition-colors"
+                >
+                  <FaLayerGroup />
+                  Question Pool
+                </Link>
+              )}
               <div className="flex flex-col items-end">
                 <span className="text-sm font-bold text-gray-800 leading-none">{user.username}</span>
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${isAdmin ? 'text-red-500' : 'text-primary'}`}>
@@ -88,6 +98,10 @@ const AppContent = () => {
             <Route 
               path="/gameplay/:quizId" 
               element={isAuthenticated ? <Gameplay /> : <Navigate to="/auth" replace />} 
+            />
+            <Route 
+              path="/questions" 
+              element={isAuthenticated ? <QuestionPool /> : <Navigate to="/auth" replace />} 
             />
 
             {/* Fallback */}

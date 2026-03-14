@@ -34,7 +34,7 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
         {
             return await _db.Set<Question>()
                 .Include(q => q.Options)
-                .Where(q => q.CategoryId == categoryId)
+                .Where(q => q.Category == categoryId)
                 .ToListAsync(ct);
         }
     }

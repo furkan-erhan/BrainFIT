@@ -9,5 +9,7 @@ namespace BrainFIT.Application.Interfaces.Repositories
     {
         Task<IReadOnlyList<Quiz>> GetAllWithCountsAsync(CancellationToken ct = default);
         Task<Quiz?> GetByIdWithQuestionsAsync(Guid id, CancellationToken ct = default);
+        Task<bool> AddQuestionToQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default);
+        Task<bool> RemoveQuestionFromQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default);
     }
 }

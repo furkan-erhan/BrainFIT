@@ -35,5 +35,31 @@ namespace BrainFIT.Infrastructure.Persistence.Repositories
                         .ThenInclude(qu => qu.Options)
                 .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
         }
+
+        public async Task<bool> AddQuestionToQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default)
+        {
+            // Prevent duplicates
+            var exists = await _db.Set<QuizQuestion>()
+                .AnyAsync(qq => qq.QuizId == quizId && qq.QuestionId == questionId, ct);
+            if (exists) return false;
+
+            var link = new QuizQuestion
+            {
+                QuizId = quizId,
+                QuestionId = questionId
+            };
+            await _db.Set<QuizQuestion>().AddAsync(link, ct);
+            return true;
+        }
+
+        public async Task<bool> RemoveQuestionFromQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default)
+        {
+            var link = await _db.Set<QuizQuestion>()
+                .FirstOrDefaultAsync(qq => qq.QuizId == quizId && qq.QuestionId == questionId, ct);
+            if (link == null) return false;
+
+            _db.Set<QuizQuestion>().Remove(link);
+            return true;
+        }
     }
 }

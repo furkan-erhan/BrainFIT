@@ -71,7 +71,7 @@ namespace BrainFIT.API.Controllers
             {
                 id = q.Id,
                 text = q.Text,
-                categoryId = q.CategoryId,
+                categoryId = q.Category,
                 difficultyLevel = q.DifficultyLevel,
                 options = q.Options.Select(o => new { id = o.Id, text = o.Text, isCorrect = o.IsCorrect })
             });

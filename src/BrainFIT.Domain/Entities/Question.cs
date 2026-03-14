@@ -8,7 +8,7 @@ public class Question : BaseEntity
     public int BasePoint { get; set; } = 10;
     public int TimeLimitInSeconds { get; set; } = 20;
     
-    public string? CategoryId { get; set; }
+    public string? Category { get; set; }
     public int DifficultyLevel { get; set; } = 1;
 
     public ICollection<Option> Options { get; set; } = new List<Option>();

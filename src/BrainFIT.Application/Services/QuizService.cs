@@ -98,5 +98,29 @@ namespace BrainFIT.Application.Services
             
             return Result.Ok("Quiz deleted successfully");
         }
+
+        public async Task<Result> AddQuestionToQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default)
+        {
+            var quiz = await _genericRepo.GetByIdAsync(quizId);
+            if (quiz is null || quiz.IsDeleted)
+                return Result.Failure("Quiz not found.");
+
+            var added = await _quizRepo.AddQuestionToQuizAsync(quizId, questionId, ct);
+            if (!added)
+                return Result.Failure("Question is already in this quiz.");
+
+            await _uow.SaveChangesAsync(ct);
+            return Result.Ok("Question added to quiz.");
+        }
+
+        public async Task<Result> RemoveQuestionFromQuizAsync(Guid quizId, Guid questionId, CancellationToken ct = default)
+        {
+            var removed = await _quizRepo.RemoveQuestionFromQuizAsync(quizId, questionId, ct);
+            if (!removed)
+                return Result.Failure("Question not found in this quiz.");
+
+            await _uow.SaveChangesAsync(ct);
+            return Result.Ok("Question removed from quiz.");
+        }
     }
 }

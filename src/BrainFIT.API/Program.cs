@@ -79,6 +79,7 @@ builder.Services.AddDbContext<BrainFITDbContext>(options =>
 
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizResultRepository, QuizResultRepository>();
+builder.Services.AddScoped<IUserAnswerRepository, UserAnswerRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IReportService, ReportService>();

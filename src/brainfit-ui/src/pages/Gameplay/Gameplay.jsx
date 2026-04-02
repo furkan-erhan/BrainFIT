@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import { FaSpinner, FaTrophy, FaCheckCircle, FaTimesCircle, FaClock, FaArrowRight } from 'react-icons/fa';
+import { FaSpinner, FaTrophy, FaCheckCircle, FaTimesCircle, FaClock, FaArrowRight, FaFilePdf, FaFileCsv, FaDownload } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useAuth } from '../../context/AuthContext';
 import { quizApi } from '../../api/quizApi';
 import { reportApi } from '../../api/reportApi';
@@ -23,6 +25,7 @@ const Gameplay = () => {
     const [sessionId, setSessionId] = useState(null);
     const [leaderboard, setLeaderboard] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const timerRef = useRef(null);
     const questionStartTimeRef = useRef(null);
@@ -192,6 +195,105 @@ const Gameplay = () => {
         }
     };
 
+    const handleDownloadReport = async () => {
+        if (!sessionId || isExporting) return;
+        setIsExporting(true);
+        try {
+            const answers = await reportApi.getSessionAnswers(sessionId);
+            const doc = new jsPDF();
+            
+            // Branding Header
+            doc.setFillColor(99, 102, 241); // Primary color #6366f1
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'bold');
+            doc.text('BrainFIT', 20, 25);
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('QUIZ PERFORMANCE REPORT', 20, 32);
+            
+            // Quiz Info
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(16);
+            doc.text(`Quiz: ${currentQuestion?.quizTitle || 'Quiz Result'}`, 20, 55);
+            
+            doc.setFontSize(12);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
+            doc.text(`Student: ${user?.username?.toUpperCase() || 'Participant'}`, 20, 72);
+            
+            // Score Summary Card in PDF
+            doc.setDrawColor(230, 230, 230);
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(130, 50, 60, 30, 3, 3, 'FD');
+            
+            doc.setTextColor(99, 102, 241);
+            doc.setFontSize(22);
+            doc.text(`${currentScore}`, 160, 68, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text('FINAL SCORE', 160, 75, { align: 'center' });
+
+            // Find Rank
+            const myRank = leaderboard.findIndex(e => e.userName === user?.username) + 1;
+            if (myRank > 0) {
+                doc.setTextColor(50, 50, 50);
+                doc.setFontSize(12);
+                doc.text(`Rank: #${myRank} of ${leaderboard.length} players`, 20, 85);
+            }
+
+            // Table
+            const tableData = answers.map((a, index) => [
+                index + 1,
+                a.questionText,
+                a.selectedOptionText,
+                a.isCorrect ? '✓' : '✗',
+                a.score
+            ]);
+
+            autoTable(doc, {
+                startY: 95,
+                head: [['#', 'Question', 'Your Answer', 'Status', 'Points']],
+                body: tableData,
+                headStyles: { fillColor: [99, 102, 241], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [250, 250, 250] },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 20, halign: 'center' },
+                    4: { cellWidth: 20, halign: 'right' }
+                },
+                didParseCell: (data) => {
+                    if (data.section === 'body' && data.column.index === 3) {
+                        data.cell.styles.textColor = data.cell.raw === '✓' ? [16, 163, 74] : [225, 29, 72];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            });
+
+            doc.save(`BrainFIT_Report_${user?.username || 'user'}_${new Date().getTime()}.pdf`);
+        } catch (err) {
+            console.error("Export Error:", err);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleExportCSV = async () => {
+        if (!isAdmin) return;
+        setIsExporting(true);
+        try {
+            await reportApi.exportLeaderboardCsv(quizId, sessionId);
+        } catch (err) {
+            alert("Failed to export CSV.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -268,9 +370,31 @@ const Gameplay = () => {
                         )}
                     </div>
 
-                    <button onClick={() => navigate('/')} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/30 transform active:scale-95">
-                        Back to Dashboard
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button onClick={() => navigate('/')} className="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors transform active:scale-95">
+                            Back to Dashboard
+                        </button>
+                        
+                        <button 
+                            onClick={handleDownloadReport} 
+                            disabled={isExporting}
+                            className="w-full sm:w-auto px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/30 transform active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            {isExporting ? <FaSpinner className="animate-spin" /> : <FaFilePdf />}
+                            Download Report
+                        </button>
+
+                        {isAdmin && (
+                            <button 
+                                onClick={handleExportCSV}
+                                disabled={isExporting}
+                                className="w-full sm:w-auto px-8 py-3 bg-secondary text-white font-bold rounded-xl hover:bg-secondary-dark transition-colors shadow-lg shadow-secondary/30 transform active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {isExporting ? <FaSpinner className="animate-spin" /> : <FaFileCsv />}
+                                Export Leaderboard
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         );

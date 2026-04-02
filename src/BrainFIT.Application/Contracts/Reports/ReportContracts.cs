@@ -25,4 +25,13 @@ namespace BrainFIT.Application.Contracts.Reports
         double TotalSecondsElapsed,
         Guid? SessionId
     );
+
+    public record UserAnswerResponse(
+        string QuestionText,
+        string SelectedOptionText,
+        string CorrectOptionText,
+        bool IsCorrect,
+        int Score,
+        int SecondsElapsed
+    );
 }

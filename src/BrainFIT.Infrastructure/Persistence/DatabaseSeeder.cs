@@ -10,9 +10,26 @@ namespace BrainFIT.Infrastructure.Persistence
         {
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<BrainFITDbContext>();
+            var passwordHasher = scope.ServiceProvider.GetRequiredService<BrainFIT.Application.Interfaces.Security.IPasswordHasher>();
 
             // Ensure database is created and migrations are applied
             await context.Database.MigrateAsync();
+
+            // 0. Seed Admin User
+            if (!await context.Users.AnyAsync(u => u.Username == "admin"))
+            {
+                var admin = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "admin",
+                    Email = "admin@brainfit.com",
+                    PasswordHash = passwordHasher.HashPassword("admin"),
+                    Role = UserRole.Admin,
+                    CreatedDate = DateTime.UtcNow
+                };
+                context.Users.Add(admin);
+                await context.SaveChangesAsync();
+            }
 
             // 1. Seed Questions
             var seedQuestions = new List<Question>();

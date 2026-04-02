@@ -36,5 +36,47 @@ export const reportApi = {
             console.error('Failed to fetch leaderboard:', err);
             return [];
         }
+    },
+
+    /**
+     * Fetches question-by-question breakdown for a specific session
+     * @param {string} sessionId 
+     * @returns {Promise<any[]>}
+     */
+    getSessionAnswers: async (sessionId) => {
+        try {
+            const result = await axiosInstance.get(`/reports/session/${sessionId}/answers`);
+            if (result && (result.success || result.Success)) {
+                return result.data || result.Data || [];
+            }
+            return [];
+        } catch (err) {
+            console.error('Failed to fetch session answers:', err);
+            return [];
+        }
+    },
+
+    /**
+     * Triggers a CSV download for the leaderboard
+     * @param {string} quizId 
+     * @param {string} sessionId 
+     */
+    exportLeaderboardCsv: async (quizId, sessionId) => {
+        const url = sessionId 
+            ? `/reports/leaderboard/${quizId}/export?sessionId=${sessionId}`
+            : `/reports/leaderboard/${quizId}/export`;
+        
+        try {
+            const response = await axiosInstance.get(url, { responseType: 'blob' });
+            const blob = new Blob([response.data], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `Leaderboard_${quizId}_${sessionId || 'All'}.csv`;
+            link.click();
+            window.URL.revokeObjectURL(link.href);
+        } catch (err) {
+            console.error('Failed to export CSV:', err);
+            throw err;
+        }
     }
 };

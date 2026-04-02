@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using BrainFIT.Application.Common;
 using BrainFIT.Application.Contracts.Reports;
 using BrainFIT.Application.Interfaces.Repositories;
@@ -14,11 +15,13 @@ namespace BrainFIT.Application.Services
     public sealed class ReportService : IReportService
     {
         private readonly IQuizResultRepository _quizResultRepo;
+        private readonly IUserAnswerRepository _userAnswerRepo;
         private readonly IUnitOfWork _uow;
 
-        public ReportService(IQuizResultRepository quizResultRepo, IUnitOfWork uow)
+        public ReportService(IQuizResultRepository quizResultRepo, IUserAnswerRepository userAnswerRepo, IUnitOfWork uow)
         {
             _quizResultRepo = quizResultRepo;
+            _userAnswerRepo = userAnswerRepo;
             _uow = uow;
         }
 
@@ -67,6 +70,38 @@ namespace BrainFIT.Application.Services
             await _uow.SaveChangesAsync(ct);
 
             return Result.Ok("Result submitted successfully.");
+        }
+
+        public async Task<Result<byte[]>> GetLeaderboardCsvAsync(Guid quizId, Guid? sessionId = null, CancellationToken ct = default)
+        {
+            var results = await _quizResultRepo.GetLeaderboardAsync(quizId, sessionId, 100, ct);
+            
+            var csv = new StringBuilder();
+            csv.AppendLine("Rank,UserName,Score,SecondsElapsed,AchievedAt");
+
+            int rank = 1;
+            foreach (var r in results)
+            {
+                csv.AppendLine($"{rank++},{r.UserName},{r.Score},{r.SecondsElapsed},{r.CreatedDate:yyyy-MM-dd HH:mm:ss}");
+            }
+
+            return Result<byte[]>.Ok(Encoding.UTF8.GetBytes(csv.ToString()));
+        }
+
+        public async Task<Result<IReadOnlyList<UserAnswerResponse>>> GetSessionAnswersAsync(Guid sessionId, string userName, CancellationToken ct = default)
+        {
+            var answers = await _userAnswerRepo.GetSessionAnswersAsync(sessionId, userName, ct);
+
+            var response = answers.Select(a => new UserAnswerResponse(
+                a.Question?.Text ?? "Unknown Question",
+                a.Question?.Options.FirstOrDefault(o => o.Id == a.SelectedOptionId)?.Text ?? "No Answer",
+                a.Question?.Options.FirstOrDefault(o => o.IsCorrect)?.Text ?? "Unknown",
+                a.IsCorrect,
+                a.Score,
+                a.SecondsElapsed
+            )).ToList();
+
+            return Result<IReadOnlyList<UserAnswerResponse>>.Ok(response);
         }
     }
 }

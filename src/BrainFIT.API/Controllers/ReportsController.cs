@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using BrainFIT.Application.Common;
@@ -48,6 +48,25 @@ namespace BrainFIT.API.Controllers
         {
             var result = await _reportService.SubmitResultAsync(request, ct);
             if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
+
+        [HttpGet("leaderboard/{quizId:guid}/export")]
+        public async Task<IActionResult> GetLeaderboardCsv(Guid quizId, [FromQuery] Guid? sessionId = null, CancellationToken ct = default)
+        {
+            var result = await _reportService.GetLeaderboardCsvAsync(quizId, sessionId, ct);
+            if (!result.Success || result.Data == null) return BadRequest(result);
+
+            return File(result.Data, "text/csv", $"Leaderboard_{quizId}_{(sessionId?.ToString() ?? "All")}.csv");
+        }
+
+        [HttpGet("session/{sessionId:guid}/answers")]
+        public async Task<ActionResult<Result<IReadOnlyList<UserAnswerResponse>>>> GetSessionAnswers(Guid sessionId, CancellationToken ct)
+        {
+            var userName = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name;
+            if (string.IsNullOrEmpty(userName)) return Unauthorized();
+
+            var result = await _reportService.GetSessionAnswersAsync(sessionId, userName, ct);
             return Ok(result);
         }
     }

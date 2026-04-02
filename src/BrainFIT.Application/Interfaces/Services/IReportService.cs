@@ -12,5 +12,7 @@ namespace BrainFIT.Application.Interfaces.Services
         Task<Result<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboardAsync(Guid quizId, Guid? sessionId = null, CancellationToken ct = default);
         Task<Result<IReadOnlyList<UserProgressResponse>>> GetUserProgressAsync(string username, CancellationToken ct = default);
         Task<Result> SubmitResultAsync(SubmitQuizResultRequest request, CancellationToken ct = default);
+        Task<Result<byte[]>> GetLeaderboardCsvAsync(Guid quizId, Guid? sessionId = null, CancellationToken ct = default);
+        Task<Result<IReadOnlyList<UserAnswerResponse>>> GetSessionAnswersAsync(Guid sessionId, string userName, CancellationToken ct = default);
     }
 }

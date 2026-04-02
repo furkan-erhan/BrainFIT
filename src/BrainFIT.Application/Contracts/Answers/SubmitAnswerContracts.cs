@@ -3,9 +3,12 @@ using System;
 namespace BrainFIT.Application.Contracts.Answers
 {
     public sealed record SubmitAnswerRequest(
+        Guid QuizId,
         Guid QuestionId,
+        string UserName,
         Guid? SelectedOptionId,
-        int SecondsElapsed
+        int SecondsElapsed,
+        Guid? SessionId = null
     );
 
     public sealed record SubmitAnswerResponse(

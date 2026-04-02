@@ -7,16 +7,24 @@ using BrainFIT.Application.Contracts.Answers;
 using BrainFIT.Application.Interfaces.Repositories;
 using BrainFIT.Application.Interfaces.Services;
 using BrainFIT.Application.Utilities;
+using BrainFIT.Domain.Entities;
 
 namespace BrainFIT.Application.Services
 {
     public sealed class AnswerService : IAnswerService
     {
         private readonly IQuestionRepository _questionRepository;
+        private readonly IUnitOfWork _uow;
+        private readonly IGenericRepository<UserAnswer> _userAnswerRepository;
 
-        public AnswerService(IQuestionRepository questionRepository)
+        public AnswerService(
+            IQuestionRepository questionRepository, 
+            IUnitOfWork uow, 
+            IGenericRepository<UserAnswer> userAnswerRepository)
         {
             _questionRepository = questionRepository;
+            _uow = uow;
+            _userAnswerRepository = userAnswerRepository;
         }
 
         public async Task<Result<SubmitAnswerResponse>> SubmitAsync(SubmitAnswerRequest request, CancellationToken ct = default)
@@ -43,7 +51,23 @@ namespace BrainFIT.Application.Services
                 ? TimeDecayScoring.Calculate(question.BasePoint, request.SecondsElapsed)
                 : 0;
 
-            return Result<SubmitAnswerResponse>.Ok(new SubmitAnswerResponse(isCorrect, score));
+            // PERSIST ANSWER FOR ANALYTICS
+            var userAnswer = new UserAnswer
+            {
+                QuizId = request.QuizId,
+                QuestionId = request.QuestionId,
+                UserName = request.UserName,
+                SelectedOptionId = request.SelectedOptionId,
+                IsCorrect = isCorrect,
+                Score = (int)score,
+                SecondsElapsed = request.SecondsElapsed,
+                SessionId = request.SessionId
+            };
+
+            await _userAnswerRepository.AddAsync(userAnswer);
+            await _uow.SaveChangesAsync(ct);
+
+            return Result<SubmitAnswerResponse>.Ok(new SubmitAnswerResponse(isCorrect, (int)score));
         }
     }
 }

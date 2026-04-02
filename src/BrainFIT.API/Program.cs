@@ -4,6 +4,7 @@ using BrainFIT.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using BrainFIT.Application.Interfaces.Services;
 using BrainFIT.Application.Services;
+using BrainFIT.Infrastructure.Services;
 using BrainFIT.API.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -91,6 +92,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAnalyticsService, BrainFIT.Infrastructure.Services.AnalyticsService>();
 
 // Add SignalR Service
 builder.Services.AddSignalR(options => 

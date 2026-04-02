@@ -8,6 +8,9 @@ using BrainFIT.Application.Contracts.Answers;
 using BrainFIT.Application.Contracts.Quizzes;
 using System;
 using System.Collections.Generic;
+using BrainFIT.Infrastructure.Persistence;
+using BrainFIT.Domain.Entities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BrainFIT.API.Hubs
 {
@@ -26,6 +29,7 @@ namespace BrainFIT.API.Hubs
         private readonly IQuizService _quizService;
         private readonly IAnswerService _answerService;
         private readonly IHubContext<QuizHub> _hubContext;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         // quizId -> dictionary of usernames (used as a concurrent hashset to prevent duplicates)
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _lobbyUsers = new();
@@ -39,11 +43,12 @@ namespace BrainFIT.API.Hubs
         // connectionId -> { quizId, username }
         private static readonly ConcurrentDictionary<string, (string QuizId, string Username)> _connectionToUserInfo = new();
 
-        public QuizHub(IQuizService quizService, IAnswerService answerService, IHubContext<QuizHub> hubContext)
+        public QuizHub(IQuizService quizService, IAnswerService answerService, IHubContext<QuizHub> hubContext, IServiceScopeFactory scopeFactory)
         {
             _quizService = quizService;
             _answerService = answerService;
             _hubContext = hubContext;
+            _scopeFactory = scopeFactory;
         }
 
         // Associates a connection with a specific quiz lobby room
@@ -157,15 +162,13 @@ namespace BrainFIT.API.Hubs
             }
         }
 
-        // Called to advance to the next question
-        // Helper to trigger the static/context-aware next question
         private async Task TriggerNextQuestion(string quizId)
         {
-            await NextQuestionStatic(quizId, _hubContext);
+            await NextQuestionStatic(quizId, _hubContext, _scopeFactory);
         }
 
         // Static method using IHubContext to survive disposal
-        private static async Task NextQuestionStatic(string quizId, IHubContext<QuizHub> context)
+        private static async Task NextQuestionStatic(string quizId, IHubContext<QuizHub> context, IServiceScopeFactory scopeFactory)
         {
             if (!_activeGames.TryGetValue(quizId, out var gameState)) return;
 
@@ -173,7 +176,38 @@ namespace BrainFIT.API.Hubs
 
             if (gameState.CurrentQuestionIndex >= gameState.Questions.Count)
             {
-                Console.WriteLine($"[QuizHub] Quiz {quizId} FINISHED. Sending 'QuizFinished' to group...");
+                Console.WriteLine($"[QuizHub] Quiz {quizId} FINISHED. Saving results and sending 'QuizFinished' to group...");
+                
+                // SAVE FINAL RESULTS TO DATABASE
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<BrainFITDbContext>();
+
+                    if (_gameScores.TryGetValue(quizId, out var scores))
+                    {
+                        foreach (var kvp in scores)
+                        {
+                            var result = new QuizResult
+                            {
+                                Id = Guid.NewGuid(),
+                                QuizId = gameState.QuizId,
+                                UserName = kvp.Key,
+                                Score = kvp.Value,
+                                SecondsElapsed = 0, // Simplified for now
+                                SessionId = gameState.SessionId,
+                                CreatedDate = DateTime.UtcNow
+                            };
+                            db.QuizResults.Add(result);
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[QuizHub] ERROR SAVING FINAL RESULTS FOR {quizId}: {ex.Message}");
+                }
+
                 await context.Clients.Group(quizId).SendAsync("QuizFinished");
                 _activeGames.TryRemove(quizId, out _);
                 return;
@@ -211,7 +245,7 @@ namespace BrainFIT.API.Hubs
                     if (_activeGames.TryGetValue(quizId, out var currentGameState) && 
                         currentGameState.CurrentQuestionIndex == gameState.CurrentQuestionIndex)
                     {
-                        await NextQuestionStatic(quizId, context);
+                        await NextQuestionStatic(quizId, context, scopeFactory);
                     }
                 }
                 catch (Exception ex)
@@ -228,7 +262,13 @@ namespace BrainFIT.API.Hubs
             var username = _connectionToUserInfo.GetValueOrDefault(Context.ConnectionId).Username;
             if (string.IsNullOrEmpty(username)) return;
 
-            var result = await _answerService.SubmitAsync(new SubmitAnswerRequest(questionId, optionId, secondsElapsed));
+            var result = await _answerService.SubmitAsync(new SubmitAnswerRequest(
+                Guid.Parse(quizId), 
+                questionId, 
+                username, 
+                optionId, 
+                secondsElapsed, 
+                gameState.SessionId));
             
             if (result.Success && result.Data != null)
             {

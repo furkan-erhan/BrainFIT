@@ -22,6 +22,7 @@ namespace BrainFIT.Infrastructure.Persistence
         public DbSet<Option> Options => Set<Option>();
         public DbSet<QuizResult> QuizResults => Set<QuizResult>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserAnswer> UserAnswers => Set<UserAnswer>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

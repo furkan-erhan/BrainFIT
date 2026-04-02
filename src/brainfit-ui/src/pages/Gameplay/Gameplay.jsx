@@ -300,7 +300,7 @@ const Gameplay = () => {
                     ? `${baseClass} bg-green-500 border-green-700 text-white` 
                     : `${baseClass} bg-red-500 border-red-700 text-white`;
             }
-            return `${baseClass} bg-primary border-primary-dark text-white opacity-80`; // Selected but waiting for result
+            return `${baseClass} bg-primary border-primary-dark text-white opacity-90 shadow-inner`; // Selected but waiting for result
         }
 
         return `${baseClass} bg-white border-gray-200 text-gray-400 opacity-50`; // Not selected
@@ -372,14 +372,25 @@ const Gameplay = () => {
                     {currentQuestion.text}
                 </h2>
                 {selectedOption && !answerResult && (
-                    <div className="mt-6 flex flex-col items-center animate-pulse">
-                        <FaSpinner className="animate-spin text-primary text-2xl mb-2" />
-                        <p className="text-primary font-bold">Waiting for next question...</p>
+                    <div className="mt-8 flex flex-col items-center justify-center p-6 bg-primary/5 rounded-2xl border border-primary/20 animate-pulse">
+                        <div className="flex items-center gap-3 text-primary">
+                            <FaSpinner className="animate-spin text-2xl" />
+                            <p className="text-xl font-bold uppercase tracking-tight">Answer Locked In!</p>
+                        </div>
+                        <p className="text-gray-500 mt-2 font-medium">Please wait for other players to finish...</p>
                     </div>
                 )}
                 {answerResult && (
-                    <div className={`mt-6 text-center text-xl font-bold animate-bounce ${answerResult.isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-                        {answerResult.isCorrect ? '+ ' + answerResult.score + ' Points!' : 'Incorrect'}
+                    <div className="mt-8 space-y-4">
+                        <div className={`p-6 rounded-2xl text-center animate-bounce shadow-lg ${answerResult.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            <p className="text-3xl font-black">
+                                {answerResult.isCorrect ? `✨ +${answerResult.score} POINTS! ✨` : '❌ INCORRECT'}
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 text-gray-400 font-bold animate-pulse">
+                            <FaClock className="text-primary" />
+                            <p className="uppercase tracking-widest text-sm">Waiting for other players to finish...</p>
+                        </div>
                     </div>
                 )}
             </div>
@@ -400,6 +411,11 @@ const Gameplay = () => {
                         <span className="ml-12">{opt.text}</span>
                         
                         {/* Result Icons */}
+                        {selectedOption === opt.id && !answerResult && (
+                             <div className="absolute right-6 top-1/2 -translate-y-1/2 text-xl opacity-50">
+                                 <FaClock />
+                             </div>
+                        )}
                         {selectedOption === opt.id && answerResult && (
                             <div className="absolute right-6 top-1/2 -translate-y-1/2 text-2xl animate-scale-in">
                                 {answerResult.isCorrect ? <FaCheckCircle /> : <FaTimesCircle />}

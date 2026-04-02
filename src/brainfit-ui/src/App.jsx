@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaLayerGroup } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaLayerGroup, FaChartLine } from 'react-icons/fa';
 import Dashboard from './pages/Dashboard/Dashboard';
 import LoginModal from './components/Auth/LoginModal';
 import QuizLobby from './pages/QuizLobby/QuizLobby';
 import Gameplay from './pages/Gameplay/Gameplay';
 import AuthPage from './pages/Auth/AuthPage';
 import QuestionPool from './pages/QuestionPool/QuestionPool';
+import Analytics from './pages/Analytics/Analytics';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const Header = ({ onOpenLogin }) => {
@@ -20,13 +21,20 @@ const Header = ({ onOpenLogin }) => {
             B
           </div>
           <span className="text-2xl font-black text-secondary tracking-tighter hidden sm:block">
-            Brain<span className="text-primary italic">FIT</span> {/* buraya basildigi zaman dashboarda atmasi lazim, link eklenecek */}
+            Brain<span className="text-primary italic">FIT</span>
           </span>
         </div>
 
         <nav className="flex items-center gap-4">
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
+              <Link
+                to="/analytics"
+                className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+              >
+                <FaChartLine />
+                Analytics
+              </Link>
               {isAdmin && (
                 <Link
                   to="/questions"
@@ -36,10 +44,10 @@ const Header = ({ onOpenLogin }) => {
                   Question Pool
                 </Link>
               )}
-              <div className="flex flex-col items-end">
-                <span className="text-sm font-bold text-gray-800 leading-none">{user.username}</span>
+              <div className="flex flex-col items-end border-l border-gray-200 pl-4 ml-2">
+                <span className="text-sm font-bold text-gray-800 leading-none">{user?.username}</span>
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${isAdmin ? 'text-red-500' : 'text-primary'}`}>
-                  {user.role}
+                  {user?.role}
                 </span>
               </div>
               <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
@@ -98,6 +106,10 @@ const AppContent = () => {
             <Route 
               path="/gameplay/:quizId" 
               element={isAuthenticated ? <Gameplay /> : <Navigate to="/auth" replace />} 
+            />
+            <Route 
+              path="/analytics" 
+              element={isAuthenticated ? <Analytics /> : <Navigate to="/auth" replace />} 
             />
             <Route 
               path="/questions" 

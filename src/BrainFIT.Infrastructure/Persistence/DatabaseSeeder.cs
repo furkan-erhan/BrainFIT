@@ -15,7 +15,7 @@ namespace BrainFIT.Infrastructure.Persistence
             // Ensure database is created and migrations are applied
             await context.Database.MigrateAsync();
 
-            // 0. Seed Admin User
+            // 0. Seed Users
             if (!await context.Users.AnyAsync(u => u.Username == "admin"))
             {
                 var admin = new User
@@ -28,8 +28,23 @@ namespace BrainFIT.Infrastructure.Persistence
                     CreatedDate = DateTime.UtcNow
                 };
                 context.Users.Add(admin);
-                await context.SaveChangesAsync();
             }
+
+            if (!await context.Users.AnyAsync(u => u.Username == "student"))
+            {
+                var student = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "student",
+                    Email = "student@brainfit.com",
+                    PasswordHash = passwordHasher.HashPassword("student"),
+                    Role = UserRole.Student,
+                    CreatedDate = DateTime.UtcNow
+                };
+                context.Users.Add(student);
+            }
+
+            await context.SaveChangesAsync();
 
             // 1. Seed Questions
             var seedQuestions = new List<Question>();

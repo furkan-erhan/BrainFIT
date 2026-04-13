@@ -1,6 +1,10 @@
 # BrainFIT 🧠
 
 BrainFIT is a modern educational platform that tracks student progress, organizes real-time quiz competitions, and provides detailed analytical insights.
+Made by : 
+- Furkan Erhan 230201015
+- İlhan Sıdal Karadeniz 220201006
+- Taha Kılınçarslan 220201025
 
 ## 🚀 Features
 
